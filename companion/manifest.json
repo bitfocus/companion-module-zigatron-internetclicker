@@ -1,0 +1,30 @@
+{
+	"id": "zigatron-internetclicker",
+	"name": "zigatron-internetclicker",
+	"shortname": "zigatron-internetclicker",
+	"description": "Control Internet Clicker",
+	"version": "0.0.1",
+	"license": "MIT",
+	"repository": "",
+	"bugs": "",
+	"maintainers": [
+		{
+			"name": "Harry Westbrook-Knight",
+			"email": "info@internetclicker.com"
+		},
+		{
+			"name": "Daniel Taylor",
+			"email": "info@internetclicker.com"
+		}
+	],
+	"runtime": {
+		"type": "node18",
+		"api": "nodejs-ipc",
+		"apiVersion": "0.0.0",
+		"entrypoint": "../index.js"
+	},
+	"legacyIds": [],
+	"manufacturer": "Zigatron",
+	"products": ["Internet Clicker"],
+	"keywords": []
+}
