@@ -6,6 +6,7 @@ const UpdateActions = require('./actions/index')
 const UpdateFeedbacks = require('./feedbacks/index')
 const Variables = require('./variables')
 const GetConfigFields = require('./config')
+const Presets = require('./presets')
 const Settings = require('./settings')
 
 class ModuleInstance extends InstanceBase {
@@ -36,6 +37,7 @@ class ModuleInstance extends InstanceBase {
 		this.updateActions() // export actions
 		this.updateFeedbacks() // export feedbacks
 		this.updateVariableDefinitions() // export variable definitions
+		this.setPresetDefinitions(Presets)
 
 		await this.initConnection()
 	}
