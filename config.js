@@ -3,7 +3,7 @@ module.exports = function () {
 		{
 			type: 'textinput',
 			id: 'apikey',
-			label: 'API Key',
+			label: 'Key',
 			width: 12,
 		},
 		{
