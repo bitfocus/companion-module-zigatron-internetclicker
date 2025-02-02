@@ -6,6 +6,7 @@ const StartTimer = require('./startTimer')
 const StopTimer = require('./stopTimer')
 const TogglePresenterAccess = require('./togglePresenterAccess')
 const ToggleIndividualPresenterAccess = require('./toggleIndividualPresenterAccess')
+const PromptForNames = require('./promptForNames');
 
 module.exports = function (self) {
 	self.setActionDefinitions({
@@ -16,6 +17,7 @@ module.exports = function (self) {
 		startTimer: StartTimer(self),
 		stopTimer: StopTimer(self),
 		togglePresenterAccess: TogglePresenterAccess(self),
-		toggleIndividualPresenterAccess: ToggleIndividualPresenterAccess(self)
+		toggleIndividualPresenterAccess: ToggleIndividualPresenterAccess(self),
+		promptForNames: PromptForNames(self),
 	})
 }
