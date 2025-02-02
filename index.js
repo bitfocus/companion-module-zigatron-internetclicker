@@ -153,7 +153,7 @@ class ModuleInstance extends InstanceBase {
 		})
 
 		this.connection.on('UserUpdated', async (updatedPresenter) => {
-			const presenter = self.room.users.find(e => e.userName === updatedPresenter.userName);
+			const presenter = self.room.users.find(e => e.userName === updatedPresenter.userName)
 			if (!presenter) {
 				self.logger.error(`Could not update user ${update.userName}: Not found`)
 				return
@@ -162,7 +162,14 @@ class ModuleInstance extends InstanceBase {
 			presenter.isActive = updatedPresenter.isActive
 			presenter.displayName = updatedPresenter.displayName
 
-			self.refreshVariablesAndFeedbacks();
+			self.refreshVariablesAndFeedbacks()
+		})
+
+		this.connection.on('DisplayNameProvided', (userName, displayName, roomName) => {
+			const presenter = self.room.users.find(e => e.userName === userName)
+			presenter.displayName = displayName
+
+			self.refreshVariablesAndFeedbacks()
 		})
 
 		this.connection.on('UpdateActivePresenters', async (room) => {
