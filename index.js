@@ -8,6 +8,7 @@ const Variables = require('./variables')
 const GetConfigFields = require('./config')
 const Presets = require('./presets')
 const Settings = require('./settings')
+const { ConnectionStatus } = require('./enums')
 
 class ModuleInstance extends InstanceBase {
 	constructor(internal) {
@@ -44,17 +45,18 @@ class ModuleInstance extends InstanceBase {
 	}
 
 	async reset() {
-		this.setupRoom();
-		this.refreshVariablesAndFeedbacks();
-		await this.stopConnection();
+		this.setupRoom()
+		await this.stopConnection()
+		this.refreshVariablesAndFeedbacks()
 	}
 
 	// When module gets deleted
 	async destroy() {
-		await this.stopConnectionO();
+		await this.reset()
 	}
 
 	async configUpdated(config) {
+		this.logger.debug('Config updated, setting up new connection')
 		await this.reset();
 		this.config = config;
 		await this.initConnection();
@@ -65,7 +67,13 @@ class ModuleInstance extends InstanceBase {
 		if (this.connection) {
 			this.logger.info("Disconnecting from hub connection")
 			await this.connection.stop()
+			this.updateHubConnectionVariable(ConnectionStatus.Disconnected)
 		}
+	}
+
+	updateHubConnectionVariable(status) {
+		Variables.Variables[Variables.Names.ConnectionStatus] = status
+		this.setVariableValues(Variables.Variables)
 	}
 
 	// Return config fields for web config
@@ -119,32 +127,37 @@ class ModuleInstance extends InstanceBase {
 			try {
 				await self.connection.start()
 				self.logger.info('Hub connection started')
+				self.updateHubConnectionVariable(ConnectionStatus.Connected)
+
 				
 				self.updateStatus(InstanceStatus.Ok);
 			} catch (err) {
 				self.logger.error(err.message)
-				self.updateStatus(InstanceStatus.UnknownWarning, "Could not start connection");
-				
+				self.updateStatus(InstanceStatus.UnknownWarning, "Could not start connection");				
 			}
 		}
 
 		this.connection.onreconnecting((error) => {
 			self.logger.info('Reconnecting to service...')
+			self.updateHubConnectionVariable(ConnectionStatus.Reconnecting)
 		})
 
 		this.connection.onclose(async (error) => {
 			//setTimeout(await start, 3000)
+			self.updateHubConnectionVariable(ConnectionStatus.Disconnected)
 
-			self.logger.error(`Could not connect to service: ${error.message}`);
+			const serverError = error?.message ?? ''
+
+			self.logger.error(`Could not connect to service: ${serverError}`);
 
 			let errorStatus = InstanceStatus.UnknownWarning
 			let errorMessage = "Connection not started"
-			if (error.message.includes('Code not found')) {
+			if (serverError.includes('Code not found')) {
 				errorMessage = 'Code not found'
 				errorStatus = InstanceStatus.BadConfig
 			}
 
-			if (error.message.includes('Must be logged in')) {
+			if (serverError.includes('Must be logged in')) {
 				errorMessage = 'Invalid key'
 				errorStatus = InstanceStatus.BadConfig
 			}
