@@ -152,8 +152,8 @@ class ModuleInstance extends InstanceBase {
 			self.updateStatus(errorStatus, errorMessage);
 		})
 
-		this.connection.on('UserUpdated', async (update) => {
-			const presenter = self.room.users.find(e => e.userName === update.userName);
+		this.connection.on('UserUpdated', async (updatedPresenter) => {
+			const presenter = self.room.users.find(e => e.userName === updatedPresenter.userName);
 			if (!presenter) {
 				self.logger.error(`Could not update user ${update.userName}: Not found`)
 				return
