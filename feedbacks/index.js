@@ -27,7 +27,6 @@ module.exports = async function (self) {
 			callback: (feedback) => {
 				// This callback will be called whenever companion wants to check if this feedback is 'active' and should affect the button style
 				return self.room.controlPresenterAccess
-				//return true;
 			},
 		},
 		toggle_individual_presenter_access: {
@@ -40,7 +39,7 @@ module.exports = async function (self) {
 				{
 					id: 'presenter_index',
 					type: 'dropdown',
-					label: 'Presenter number (0 indexed)',
+					label: 'Presenter number',
 					choices: buildPresenterOptions(),
 					default: 0
 				},
@@ -85,21 +84,20 @@ module.exports = async function (self) {
 					default: '0x000000'
 				},
 			],
-			callback: async (feedback, context) => {
-				const options = feedback.options;
+			callback: (feedback, context) => {
+				const options = feedback.options
 				const state = {
 					notconnected: { color: options.state_notconnected_color, bgcolor: options.state_notconnected_bg },
 					active: { color: options.state_active_color, bgcolor: options.state_active_bg },
 					inactive: { color: options.state_inactive_color, bgcolor: options.state_inactive_bg }
 				}
 
-				// This callback will be called whenever companion wants to check if this feedback is 'active' and should affect the button style
-				if (self.room.users.indexOf(feedback.options.presenter_index) === -1) {
-					return state.notconnected;
+				const presenter = self.room.users?.[options.presenter_index]
+				if (!presenter) {
+					return state.notconnected
 				}
 				
-				return self.room.users[feedback.options.presenter_index].isActive
-					? state.active : state.inactive;
+				return presenter.isActive ? state.active : state.inactive
 			},
 		},
 	})

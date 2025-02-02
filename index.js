@@ -1,4 +1,4 @@
-const { InstanceBase, Regex, runEntrypoint, InstanceStatus } = require('@companion-module/base')
+const { InstanceBase, Regex, runEntrypoint, InstanceStatus, LogLevel } = require('@companion-module/base')
 const SignalR = require('@microsoft/signalr')
 
 const UpgradeScripts = require('./upgrades')
@@ -16,6 +16,7 @@ class ModuleInstance extends InstanceBase {
 		this.logger = {
 			info: (message) => this.log('info', message),
 			debug: (message) => this.log('debug', message),
+			warn: (message) => this.log('warn', message),
 			error: (message) => this.log('error', message),
 		}
 
@@ -31,7 +32,7 @@ class ModuleInstance extends InstanceBase {
 	}
 
 	async init(config) {
-		this.updateStatus(InstanceStatus.Connecting);
+		this.logger.debug('Initializing internetclicker module')
 		this.config = config
 
 		this.updateActions() // export actions
@@ -54,7 +55,6 @@ class ModuleInstance extends InstanceBase {
 	}
 
 	async configUpdated(config) {
-		this.updateStatus(InstanceStatus.Connecting);
 		await this.reset();
 		this.config = config;
 		await this.initConnection();
@@ -88,6 +88,9 @@ class ModuleInstance extends InstanceBase {
 	async initConnection() {
 		const self = this
 
+		self.logger.debug("noooooo")
+		self.log('debug', "yesssssss")
+
 		if (!this.config.apikey || !this.config.code) {
 			this.updateStatus(InstanceStatus.BadConfig);
 		}
@@ -120,19 +123,46 @@ class ModuleInstance extends InstanceBase {
 				self.updateStatus(InstanceStatus.Ok);
 			} catch (err) {
 				self.logger.error(err.message)
+				self.updateStatus(InstanceStatus.UnknownWarning, "Could not start connection");
+				
 			}
 		}
 
 		this.connection.onreconnecting((error) => {
-			self.updateStatus(InstanceStatus.Connecting);
+			self.logger.info('Reconnecting to service...')
 		})
 
 		this.connection.onclose(async (error) => {
 			//setTimeout(await start, 3000)
 
-			self.logger.error(`Could not connect to internet clicker hub: ${error.message}`);
+			self.logger.error(`Could not connect to service: ${error.message}`);
 
-			self.updateStatus(InstanceStatus.Disconnected);
+			let errorStatus = InstanceStatus.UnknownWarning
+			let errorMessage = "Connection not started"
+			if (error.message.includes('Code not found')) {
+				errorMessage = 'Code not found'
+				errorStatus = InstanceStatus.BadConfig
+			}
+
+			if (error.message.includes('Must be logged in')) {
+				errorMessage = 'Invalid key'
+				errorStatus = InstanceStatus.BadConfig
+			}
+				
+			self.updateStatus(errorStatus, errorMessage);
+		})
+
+		this.connection.on('UserUpdated', async (update) => {
+			const presenter = self.room.users.find(e => e.userName === update.userName);
+			if (!presenter) {
+				self.logger.error(`Could not update user ${update.userName}: Not found`)
+				return
+			}
+			
+			presenter.isActive = updatedPresenter.isActive
+			presenter.displayName = updatedPresenter.displayName
+
+			self.refreshVariablesAndFeedbacks();
 		})
 
 		this.connection.on('UpdateActivePresenters', async (room) => {
@@ -183,6 +213,7 @@ class ModuleInstance extends InstanceBase {
 		})
 
 		this.connection.on('UserDisconnected', (username, code) => {
+			self.logger.info(`User ${username} disconnected`)
 			const index = self.room.users.findIndex(e => e.userName === username);
 
 			if (index !== -1) {
@@ -193,6 +224,7 @@ class ModuleInstance extends InstanceBase {
 		})
 
 		this.connection.on("UserConnected", function (username, code, isactive, displayname) {
+			self.logger.info(`User ${username} connected`)
 
 			const presenter = self.room.users.find(e => e.userName === username);
 
@@ -227,14 +259,13 @@ class ModuleInstance extends InstanceBase {
 				vars[Variables.DefinitionGenerator.PresenterName(i)] = presenter.displayName;
 			}
 			else {
-				// set it back to undefined
-				vars[Variables.DefinitionGenerator.PresenterName(i)] = undefined;
+				vars[Variables.DefinitionGenerator.PresenterName(i)] = this.config.unknownPresenterName ?? '';
 			}
 		}
 	}
 
 	refreshVariablesAndFeedbacks() {
-		
+		this.log('debug', "Refreshing variables and feedbacks")
 		this.checkFeedbacks('control_presenter_access');
 		this.checkFeedbacks('toggle_individual_presenter_access')
 
