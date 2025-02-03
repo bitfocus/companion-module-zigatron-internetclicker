@@ -66,7 +66,7 @@ class ModuleInstance extends InstanceBase {
 		// if there is an active connection we should disconnect
 		if (this.connection) {
 			this.logger.info("Disconnecting from hub connection")
-			await this.connection.state.stop()
+			await this.connection.stop()
 			this.hubConnectionUpdated();
 		}
 	}
@@ -126,6 +126,8 @@ class ModuleInstance extends InstanceBase {
 		const apiKeyEncoded = encodeURIComponent(self.config.apikey)
 		const codeEncoded = encodeURIComponent(self.config.code)
 
+		await this.stopConnection();
+
 		this.connection = new SignalR.HubConnectionBuilder()
 			.withUrl(
 				`${Settings.BaseUrl}/keypresshub?isAccount=${codeEncoded}`,
@@ -139,19 +141,6 @@ class ModuleInstance extends InstanceBase {
 			.configureLogging(SignalR.LogLevel.Information)
 			.build()
 
-		async function start() {
-			try {
-				await self.connection.start()
-				self.logger.info('Hub connection started')
-				self.hubConnectionUpdated()
-				
-				self.updateStatus(InstanceStatus.Ok);
-			} catch (err) {
-				self.logger.error(err.message)
-				self.updateStatus(InstanceStatus.UnknownWarning, "Could not start connection");				
-			}
-		}
-
 		this.connection.onreconnecting((error) => {
 			self.logger.info('Reconnecting to service...')
 			self.hubConnectionUpdated()
@@ -160,6 +149,12 @@ class ModuleInstance extends InstanceBase {
 		this.connection.onclose(async (error) => {
 			//setTimeout(await start, 3000)
 			self.hubConnectionUpdated()
+
+			self.logger.info(`Hub connection closed`)
+
+			if (!error) {
+				return
+			}
 
 			const serverError = error?.message ?? ''
 
@@ -286,7 +281,26 @@ class ModuleInstance extends InstanceBase {
 		this.setVariableValues(Variables.Values)
 
 		// Start the connection.
-		await start()
+		await this.startConnection()
+	}
+
+	async startConnection() {
+		if (!this.connection) {
+			await this.initConnection()
+			return;
+		}
+
+		try {
+			await this.connection.start()
+			this.logger.info('Hub connection started')
+			this.hubConnectionUpdated()
+			
+			this.updateStatus(InstanceStatus.Ok);
+		} catch (err) {
+			this.hubConnectionUpdated()
+			this.logger.error(err.message)
+			this.updateStatus(InstanceStatus.UnknownWarning, "Could not start connection");				
+		}
 	}
 
 	updatePresenterVariables(vars) {
