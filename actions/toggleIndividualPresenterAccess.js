@@ -1,11 +1,10 @@
 const Settings = require('../settings')
 
-const buildOptions = () => Array.from(
-	{ length: Settings.NumberOfPresenters },
-	(_, i) => ({
+const buildOptions = () =>
+	Array.from({ length: Settings.NumberOfPresenters }, (_, i) => ({
 		id: i,
-		label: i + 1
-	}));
+		label: i + 1,
+	}))
 
 module.exports = function (self) {
 	return {
@@ -16,26 +15,26 @@ module.exports = function (self) {
 				type: 'dropdown',
 				label: 'Presenter Index',
 				choices: buildOptions(),
-				default: 0
-			}
+				default: 0,
+			},
 		],
 		callback: async (event) => {
-			if (!self.connection) return;
+			if (!self.connection) return
 
 			if (!self.room.controlPresenterAccess) {
-				self.logger.info("Cannot toggle presenter access while control presenter access is disabled");
+				self.logger.info('Cannot toggle presenter access while control presenter access is disabled')
 
-				return;
+				return
 			}
 
-			const presenter = self.room.users?.[event.options.presenter_index];
+			const presenter = self.room.users?.[event.options.presenter_index]
 
-			if (!presenter) return;
+			if (!presenter) return
 
 			self.connection
 				.invoke('switchActiveStatus', self.config.code, presenter.userName)
 				.then(() => {
-					presenter.isActive = !presenter.isActive;
+					presenter.isActive = !presenter.isActive
 					self.checkFeedbacks('toggle_individual_presenter_access')
 				})
 				.catch((err) => self.log('error', err.toString()))

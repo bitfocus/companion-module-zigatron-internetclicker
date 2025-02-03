@@ -3,7 +3,7 @@ const { ConnectionState } = require('./enums')
 
 const Keys = {
 	ConnectionState: 'connection_state',
-	PresenterName: (num) => `presenter_${num}_name`
+	PresenterName: (num) => `presenter_${num}_name`,
 }
 
 const Values = {}
@@ -16,7 +16,7 @@ const SetupDefinitions = function (self) {
 		const variableId = Keys.PresenterName(i)
 		vars.push({
 			variableId,
-			name: `Presenter ${i} name`
+			name: `Presenter ${i} name`,
 		})
 
 		Values[variableId] = self.config.unknownPresenterName ?? ''
@@ -25,7 +25,7 @@ const SetupDefinitions = function (self) {
 	// connection status
 	vars.push({
 		variableId: Keys.ConnectionState,
-		name: 'Connection Status'
+		name: 'Connection Status',
 	})
 	Values[Keys.ConnectionState] = ConnectionState.Disconnected
 

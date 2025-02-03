@@ -57,23 +57,23 @@ class ModuleInstance extends InstanceBase {
 
 	async configUpdated(config) {
 		this.logger.debug('Config updated, setting up new connection')
-		await this.reset();
-		this.config = config;
-		await this.initConnection();
+		await this.reset()
+		this.config = config
+		await this.initConnection()
 	}
 
 	async stopConnection() {
 		// if there is an active connection we should disconnect
 		if (this.connection) {
-			this.logger.info("Disconnecting from hub connection")
+			this.logger.info('Disconnecting from hub connection')
 			await this.connection.stop()
-			this.hubConnectionUpdated();
+			this.hubConnectionUpdated()
 		}
 	}
 
-	hubConnectionUpdated() {		
+	hubConnectionUpdated() {
 		Variables.Values[Variables.Keys.ConnectionState] = this.getHubConnectionState()
-		// update feedback		
+		// update feedback
 		this.checkFeedbacks()
 		// make sure this method is called in correct places
 		this.setVariableValues(Variables.Values)
@@ -116,9 +116,9 @@ class ModuleInstance extends InstanceBase {
 		const self = this
 
 		if (!this.config.apikey || !this.config.code) {
-			this.updateStatus(InstanceStatus.BadConfig);
+			this.updateStatus(InstanceStatus.BadConfig)
 		}
-		
+
 		this.logger.info(`Using base url ${Settings.BaseUrl}`)
 
 		this.logger.info('Initializing hub connection')
@@ -126,17 +126,14 @@ class ModuleInstance extends InstanceBase {
 		const apiKeyEncoded = encodeURIComponent(self.config.apikey)
 		const codeEncoded = encodeURIComponent(self.config.code)
 
-		await this.stopConnection();
+		await this.stopConnection()
 
 		this.connection = new SignalR.HubConnectionBuilder()
-			.withUrl(
-				`${Settings.BaseUrl}/keypresshub?isAccount=${codeEncoded}`,
-				{
-					headers: {
-						'X-ConnectionCode': apiKeyEncoded,
-					},
+			.withUrl(`${Settings.BaseUrl}/keypresshub?isAccount=${codeEncoded}`, {
+				headers: {
+					'X-ConnectionCode': apiKeyEncoded,
 				},
-			)
+			})
 			.withAutomaticReconnect()
 			.configureLogging(SignalR.LogLevel.Information)
 			.build()
@@ -158,10 +155,10 @@ class ModuleInstance extends InstanceBase {
 
 			const serverError = error?.message ?? ''
 
-			self.logger.error(`Could not connect to service: ${serverError}`);
+			self.logger.error(`Could not connect to service: ${serverError}`)
 
 			let errorStatus = InstanceStatus.UnknownWarning
-			let errorMessage = "Connection not started"
+			let errorMessage = 'Connection not started'
 			if (serverError.includes('Code not found')) {
 				errorMessage = 'Code not found'
 				errorStatus = InstanceStatus.BadConfig
@@ -171,21 +168,20 @@ class ModuleInstance extends InstanceBase {
 				errorMessage = 'Invalid key'
 				errorStatus = InstanceStatus.BadConfig
 			}
-				
-			self.updateStatus(errorStatus, errorMessage);
 
-			
+			self.updateStatus(errorStatus, errorMessage)
+
 			this.setupRoom()
 			this.refreshVariablesAndFeedbacks()
 		})
 
 		this.connection.on('UserUpdated', async (updatedPresenter) => {
-			const presenter = self.room.users.find(e => e.userName === updatedPresenter.userName)
+			const presenter = self.room.users.find((e) => e.userName === updatedPresenter.userName)
 			if (!presenter) {
 				self.logger.error(`Could not update user ${update.userName}: Not found`)
 				return
 			}
-			
+
 			presenter.isActive = updatedPresenter.isActive
 			presenter.displayName = updatedPresenter.displayName
 
@@ -193,7 +189,7 @@ class ModuleInstance extends InstanceBase {
 		})
 
 		this.connection.on('DisplayNameProvided', (userName, displayName, roomName) => {
-			const presenter = self.room.users.find(e => e.userName === userName)
+			const presenter = self.room.users.find((e) => e.userName === userName)
 			presenter.displayName = displayName
 
 			self.refreshVariablesAndFeedbacks()
@@ -219,55 +215,50 @@ class ModuleInstance extends InstanceBase {
 						continue
 					}
 
-					const presentersMatchingName = self.room.users.filter(
-						(e) => e.displayName == updatedPresenter.displayName,
-					)
+					const presentersMatchingName = self.room.users.filter((e) => e.displayName == updatedPresenter.displayName)
 
 					if (presentersMatchingName.length === 0) {
 						self.room.users.push(updatedPresenter)
-					}
-					else if (presentersMatchingName.length === 1) {
+					} else if (presentersMatchingName.length === 1) {
 						presenter.isActive = updatedPresenter.isActive
 						presenter.displayName = updatedPresenter.displayName
-					}
-					else {
+					} else {
 						self.room.users.push(updatedPresenter)
 					}
 				}
 			}
 
-			self.refreshVariablesAndFeedbacks();
+			self.refreshVariablesAndFeedbacks()
 		})
 
 		this.connection.on('UserDisconnected', (username, code) => {
 			self.logger.info(`User ${username} disconnected`)
-			const index = self.room.users.findIndex(e => e.userName === username);
+			const index = self.room.users.findIndex((e) => e.userName === username)
 
 			if (index !== -1) {
-				self.room.users.splice(index, 1);
-				self.refreshVariablesAndFeedbacks();
+				self.room.users.splice(index, 1)
+				self.refreshVariablesAndFeedbacks()
 			}
-
 		})
 
-		this.connection.on("UserConnected", function (username, code, isactive, displayname) {
+		this.connection.on('UserConnected', function (username, code, isactive, displayname) {
 			self.logger.info(`User ${username} connected`)
 
-			const presenter = self.room.users.find(e => e.userName === username);
+			const presenter = self.room.users.find((e) => e.userName === username)
 
 			if (presenter) {
-				presenter.displayName = displayname;
-				presenter.isActive = isactive;
+				presenter.displayName = displayname
+				presenter.isActive = isactive
 			} else {
 				self.room.users.push({
 					userName: username,
 					displayName: displayname,
-					isActive: isactive
+					isActive: isactive,
 				})
 			}
 
-			self.refreshVariablesAndFeedbacks();
-		});
+			self.refreshVariablesAndFeedbacks()
+		})
 
 		this.updatePresenterVariables(Variables.Values)
 
@@ -280,19 +271,19 @@ class ModuleInstance extends InstanceBase {
 	async startConnection() {
 		if (!this.connection) {
 			await this.initConnection()
-			return;
+			return
 		}
 
 		try {
 			await this.connection.start()
 			this.logger.info('Hub connection started')
 			this.hubConnectionUpdated()
-			
-			this.updateStatus(InstanceStatus.Ok);
+
+			this.updateStatus(InstanceStatus.Ok)
 		} catch (err) {
 			this.hubConnectionUpdated()
 			this.logger.error(err.message)
-			this.updateStatus(InstanceStatus.UnknownWarning, "Could not start connection");				
+			this.updateStatus(InstanceStatus.UnknownWarning, 'Could not start connection')
 		}
 	}
 
@@ -300,18 +291,17 @@ class ModuleInstance extends InstanceBase {
 		for (let i = 1; i <= Settings.NumberOfPresenters; i++) {
 			// get presenter if they exist
 			if (this.room.users.length >= i) {
-				const presenter = this.room.users[i - 1];
+				const presenter = this.room.users[i - 1]
 				// update the values of the variables
-				vars[Variables.Keys.PresenterName(i)] = presenter.displayName;
-			}
-			else {
-				vars[Variables.Keys.PresenterName(i)] = this.config.unknownPresenterName ?? '';
+				vars[Variables.Keys.PresenterName(i)] = presenter.displayName
+			} else {
+				vars[Variables.Keys.PresenterName(i)] = this.config.unknownPresenterName ?? ''
 			}
 		}
 	}
 
 	refreshVariablesAndFeedbacks() {
-		this.checkFeedbacks('control_presenter_access');
+		this.checkFeedbacks('control_presenter_access')
 		this.checkFeedbacks('toggle_individual_presenter_access')
 
 		this.updatePresenterVariables(Variables.Values)

@@ -11,8 +11,8 @@ module.exports = function (self) {
 					{ id: 'add', label: 'Add' },
 					{ id: 'minus', label: 'Minus' },
 				],
-				default: 'add'
-			},			
+				default: 'add',
+			},
 			{
 				type: 'number',
 				label: 'Minutes',
@@ -33,7 +33,7 @@ module.exports = function (self) {
 			},
 		],
 		callback: (event) => {
-			const multiplier = event.options.change_type === 'minus' ? -1 : 1;
+			const multiplier = event.options.change_type === 'minus' ? -1 : 1
 
 			const minutes = Math.abs(Math.floor(event.options.minutes ?? 0)) * multiplier
 			const seconds = Math.abs(Math.floor(event.options.seconds ?? 0)) * multiplier

@@ -3,7 +3,7 @@ module.exports = function (self) {
 		name: 'Toggle Presenter Access',
 		callback: async (event) => {
 			self.logger.info('Toggling room presenter access')
-			
+
 			if (self.connection) {
 				self.connection
 					.invoke('ToggleRoomPresenterAccess', self.config.code)
