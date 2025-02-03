@@ -1,9 +1,9 @@
-const ConnectionStatus = {
+const ConnectionState = {
     Disconnected: 'Disconnected',
-    Reconnecting: 'Reconnecting',
+    Connecting: 'Connecting',
     Connected: 'Connected'
 }
 
 module.exports = {
-    ConnectionStatus
+    ConnectionState
 }

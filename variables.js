@@ -1,43 +1,39 @@
 const Settings = require('./settings')
-const { ConnectionStatus } = require('./enums')
+const { ConnectionState } = require('./enums')
 
-const Names = {
-	ConnectionStatus: 'connection_status'
+const Keys = {
+	ConnectionState: 'connection_state',
+	PresenterName: (num) => `presenter_${num}_name`
 }
 
-const Variables = {}
+const Values = {}
 
 const SetupDefinitions = function (self) {
 	const vars = []
 
 	// presenter variables
 	for (let i = 1; i <= Settings.NumberOfPresenters; i++) {
-		const variableId = DefinitionGenerator.PresenterName(i)
+		const variableId = Keys.PresenterName(i)
 		vars.push({
 			variableId,
 			name: `Presenter ${i} name`
 		})
 
-		Variables[variableId] = self.config.unknownPresenterName ?? ''
+		Values[variableId] = self.config.unknownPresenterName ?? ''
 	}
 
 	// connection status
 	vars.push({
-		variableId: Names.ConnectionStatus,
+		variableId: Keys.ConnectionState,
 		name: 'Connection Status'
 	})
-	Variables[Names.ConnectionStatus] = ConnectionStatus.Disconnected
+	Values[Keys.ConnectionState] = ConnectionState.Disconnected
 
 	self.setVariableDefinitions(vars)
 }
 
-const DefinitionGenerator = {
-	PresenterName: (num) => `presenter_${num}_name`
-}
-
 module.exports = {
-	Variables,
+	Keys,
+	Values,
 	SetupDefinitions,
-	DefinitionGenerator,
-	Names
 }

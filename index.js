@@ -1,4 +1,4 @@
-const { InstanceBase, Regex, runEntrypoint, InstanceStatus, LogLevel } = require('@companion-module/base')
+const { InstanceBase, Regex, runEntrypoint, InstanceStatus } = require('@companion-module/base')
 const SignalR = require('@microsoft/signalr')
 
 const UpgradeScripts = require('./upgrades')
@@ -8,7 +8,7 @@ const Variables = require('./variables')
 const GetConfigFields = require('./config')
 const Presets = require('./presets')
 const Settings = require('./settings')
-const { ConnectionStatus } = require('./enums')
+const { ConnectionState } = require('./enums')
 
 class ModuleInstance extends InstanceBase {
 	constructor(internal) {
@@ -66,14 +66,33 @@ class ModuleInstance extends InstanceBase {
 		// if there is an active connection we should disconnect
 		if (this.connection) {
 			this.logger.info("Disconnecting from hub connection")
-			await this.connection.stop()
-			this.updateHubConnectionVariable(ConnectionStatus.Disconnected)
+			await this.connection.state.stop()
+			this.hubConnectionUpdated();
 		}
 	}
 
-	updateHubConnectionVariable(status) {
-		Variables.Variables[Variables.Names.ConnectionStatus] = status
-		this.setVariableValues(Variables.Variables)
+	hubConnectionUpdated() {		
+		Variables.Values[Variables.Keys.ConnectionState] = this.getHubConnectionState()
+		// update feedback		
+		this.checkFeedbacks()
+		// make sure this method is called in correct places
+		this.setVariableValues(Variables.Values)
+	}
+
+	getHubConnectionState() {
+		if (!this.connection) return ConnectionState.Disconnected
+
+		switch (this.connection.state) {
+			case SignalR.HubConnectionState.Connected:
+			case SignalR.HubConnectionState.Disconnecting:
+				return ConnectionState.Connected
+			case SignalR.HubConnectionState.Connecting:
+			case SignalR.HubConnectionState.Reconnecting:
+				return ConnectionState.Connecting
+			case SignalR.HubConnectionState.Disconnected:
+			default:
+				return ConnectionState.Disconnected
+		}
 	}
 
 	// Return config fields for web config
@@ -95,9 +114,6 @@ class ModuleInstance extends InstanceBase {
 
 	async initConnection() {
 		const self = this
-
-		self.logger.debug("noooooo")
-		self.log('debug', "yesssssss")
 
 		if (!this.config.apikey || !this.config.code) {
 			this.updateStatus(InstanceStatus.BadConfig);
@@ -127,8 +143,7 @@ class ModuleInstance extends InstanceBase {
 			try {
 				await self.connection.start()
 				self.logger.info('Hub connection started')
-				self.updateHubConnectionVariable(ConnectionStatus.Connected)
-
+				self.hubConnectionUpdated()
 				
 				self.updateStatus(InstanceStatus.Ok);
 			} catch (err) {
@@ -139,12 +154,12 @@ class ModuleInstance extends InstanceBase {
 
 		this.connection.onreconnecting((error) => {
 			self.logger.info('Reconnecting to service...')
-			self.updateHubConnectionVariable(ConnectionStatus.Reconnecting)
+			self.hubConnectionUpdated()
 		})
 
 		this.connection.onclose(async (error) => {
 			//setTimeout(await start, 3000)
-			self.updateHubConnectionVariable(ConnectionStatus.Disconnected)
+			self.hubConnectionUpdated()
 
 			const serverError = error?.message ?? ''
 
@@ -163,6 +178,10 @@ class ModuleInstance extends InstanceBase {
 			}
 				
 			self.updateStatus(errorStatus, errorMessage);
+
+			
+			this.setupRoom()
+			this.refreshVariablesAndFeedbacks()
 		})
 
 		this.connection.on('UserUpdated', async (updatedPresenter) => {
@@ -262,9 +281,9 @@ class ModuleInstance extends InstanceBase {
 			self.refreshVariablesAndFeedbacks();
 		});
 
-		this.updatePresenterVariables(Variables.Variables)
+		this.updatePresenterVariables(Variables.Values)
 
-		this.setVariableValues(Variables.Variables)
+		this.setVariableValues(Variables.Values)
 
 		// Start the connection.
 		await start()
@@ -276,10 +295,10 @@ class ModuleInstance extends InstanceBase {
 			if (this.room.users.length >= i) {
 				const presenter = this.room.users[i - 1];
 				// update the values of the variables
-				vars[Variables.DefinitionGenerator.PresenterName(i)] = presenter.displayName;
+				vars[Variables.Keys.PresenterName(i)] = presenter.displayName;
 			}
 			else {
-				vars[Variables.DefinitionGenerator.PresenterName(i)] = this.config.unknownPresenterName ?? '';
+				vars[Variables.Keys.PresenterName(i)] = this.config.unknownPresenterName ?? '';
 			}
 		}
 	}
@@ -289,10 +308,10 @@ class ModuleInstance extends InstanceBase {
 		this.checkFeedbacks('control_presenter_access');
 		this.checkFeedbacks('toggle_individual_presenter_access')
 
-		this.updatePresenterVariables(Variables.Variables)
+		this.updatePresenterVariables(Variables.Values)
 
-		this.setVariableValues(Variables.Variables)
-		this.log('debug', 'Updated variables', Variables.Variables)
+		this.setVariableValues(Variables.Values)
+		this.log('debug', 'Updated variables', Variables.Values)
 	}
 }
 
