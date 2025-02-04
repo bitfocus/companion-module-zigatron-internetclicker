@@ -8,7 +8,7 @@ const buildOptions = () =>
 
 module.exports = function (self) {
 	return {
-		name: 'Toggle Individual Presenter Access',
+		name: 'Toggle Presenter Status',
 		options: [
 			{
 				id: 'presenter_index',

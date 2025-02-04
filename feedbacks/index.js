@@ -12,8 +12,8 @@ module.exports = async function (self) {
 	self.setFeedbackDefinitions({
 		control_presenter_access: {
 			type: 'boolean', // Feedbacks can either a simple boolean, or can be an 'advanced' style change (until recently, all feedbacks were 'advanced')
-			name: 'Control Presenter Access Status',
-			label: 'Control Presenter Access Status',
+			name: 'Control Presenter Access',
+			label: 'Control Presenter Access',
 			description: 'Whether this code has presenter access control enabled',
 			defaultStyle: {
 				// The default style change for a boolean feedback
@@ -31,9 +31,9 @@ module.exports = async function (self) {
 		},
 		toggle_individual_presenter_access: {
 			type: 'advanced', // Feedbacks can either a simple boolean, or can be an 'advanced' style change (until recently, all feedbacks were 'advanced')
-			name: 'Toggle Presenter Access Status',
-			label: 'Toggle Presenter Access Status',
-			description: 'Whether this code has presenter access control enabled',
+			name: 'Toggle Presenter Status',
+			label: 'Toggle Presenter Status',
+			description: 'Whether this code has presenter click control enabled',
 			// options is how the user can choose the condition the feedback activates for
 			options: [
 				{

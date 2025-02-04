@@ -1,6 +1,6 @@
 module.exports = function (self) {
 	return {
-		name: 'Add/minus Timer',
+		name: 'Add/Minus Timer',
 		description: 'Change the timer by adding or taking away the specified amount of time',
 		options: [
 			{

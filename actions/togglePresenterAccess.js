@@ -1,6 +1,6 @@
 module.exports = function (self) {
 	return {
-		name: 'Toggle Presenter Access',
+		name: 'Control Presenter Access',
 		callback: async (event) => {
 			self.logger.info('Toggling room presenter access')
 
