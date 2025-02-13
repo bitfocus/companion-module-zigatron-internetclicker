@@ -1,4 +1,4 @@
-const Settings = require('./settings')
+import Settings from './settings.js'
 
 function generatePresenterToggleButtons() {
 	const presets = {}
@@ -51,4 +51,4 @@ function generatePresenterToggleButtons() {
 	return presets
 }
 
-module.exports = generatePresenterToggleButtons()
+export default generatePresenterToggleButtons()

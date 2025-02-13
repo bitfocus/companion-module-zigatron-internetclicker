@@ -1,4 +1,4 @@
-const Settings = require('../settings')
+import Settings from '../settings.js'
 
 const buildOptions = () =>
 	Array.from({ length: Settings.NumberOfPresenters }, (_, i) => ({
@@ -6,7 +6,7 @@ const buildOptions = () =>
 		label: i + 1,
 	}))
 
-module.exports = function (self) {
+export default function (self) {
 	return {
 		name: 'Toggle Presenter Status',
 		options: [

@@ -1,4 +1,4 @@
-module.exports = function (self) {
+export default function (self) {
 	return {
 		name: 'Start Timer',
 		callback: async (event) => {

@@ -1,14 +1,13 @@
-const fs = require('fs')
-const path = require('path')
+import { existsSync, readFileSync } from 'fs'
+import { join } from 'path'
 
 // a naive .env file for overriding settings locally during development or testing
 function loadDevEnv() {
 	try {
 		// Look for .env file in the module directory
-		const envPath = path.join(__dirname, '.env')
-		if (fs.existsSync(envPath)) {
-			const envConfig = fs
-				.readFileSync(envPath, 'utf8')
+		const envPath = join(__dirname, '.env')
+		if (existsSync(envPath)) {
+			const envConfig = readFileSync(envPath, 'utf8')
 				.split('\n')
 				.filter((line) => line.trim() && !line.startsWith('#'))
 				.reduce((acc, line) => {
@@ -32,4 +31,4 @@ const settingsVal = {
 	BaseUrl: localSettings.BaseUrl || 'https://www.internetclicker.com',
 }
 
-module.exports = settingsVal
+export default settingsVal

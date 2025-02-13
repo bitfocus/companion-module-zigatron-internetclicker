@@ -1,4 +1,4 @@
-module.exports = function (self) {
+export default function (self) {
 	return {
 		name: 'Add/Minus Timer',
 		description: 'Change the timer by adding or taking away the specified amount of time',

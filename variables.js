@@ -1,5 +1,5 @@
-const Settings = require('./settings')
-const { ConnectionState } = require('./enums')
+import Settings from './settings.js'
+import { ConnectionState } from './enums.js'
 
 const Keys = {
 	ConnectionState: 'connection_state',
@@ -32,7 +32,7 @@ const SetupDefinitions = function (self) {
 	self.setVariableDefinitions(vars)
 }
 
-module.exports = {
+export default {
 	Keys,
 	Values,
 	SetupDefinitions,

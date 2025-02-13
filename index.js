@@ -1,14 +1,35 @@
-const { InstanceBase, Regex, runEntrypoint, InstanceStatus } = require('@companion-module/base')
-const SignalR = require('@microsoft/signalr')
+import { InstanceBase, Regex, runEntrypoint, InstanceStatus } from '@companion-module/base'
+import { HubConnectionState, HubConnectionBuilder, LogLevel } from '@microsoft/signalr'
 
-const UpgradeScripts = require('./upgrades')
-const UpdateActions = require('./actions/index')
-const UpdateFeedbacks = require('./feedbacks/index')
-const Variables = require('./variables')
-const GetConfigFields = require('./config')
-const Presets = require('./presets')
-const Settings = require('./settings')
-const { ConnectionState } = require('./enums')
+import UpgradeScripts from './upgrades.js'
+import UpdateActions from './actions/index.js'
+import UpdateFeedbacks from './feedbacks/index.js'
+import Variables from './variables.js'
+import GetConfigFields from './config.js'
+import Presets from './presets.js'
+import Settings from './settings.js'
+import { ConnectionState } from './enums.js'
+
+// these are signalr dependencies that are loaded dynamically
+import WebSocket from 'ws'
+import EventSource from 'eventsource'
+import ToughCookie from 'tough-cookie'
+import FetchCookie from 'fetch-cookie'
+
+const originalRequire = require;
+
+// Override require so signalr can load it's dependencies
+const signalrRequireWrapper = (moduleName) => {
+    if (moduleName === 'ws') return WebSocket
+    if (moduleName === 'eventsource') return EventSource
+	if (moduleName === 'tough-cookie') return ToughCookie
+	if (moduleName === 'fetch-cookie') return FetchCookie
+    // Fall back to original require for other modules
+    return originalRequire?.(moduleName);
+};
+
+require = signalrRequireWrapper;
+
 
 class ModuleInstance extends InstanceBase {
 	constructor(internal) {
@@ -83,13 +104,13 @@ class ModuleInstance extends InstanceBase {
 		if (!this.connection) return ConnectionState.Disconnected
 
 		switch (this.connection.state) {
-			case SignalR.HubConnectionState.Connected:
-			case SignalR.HubConnectionState.Disconnecting:
+			case HubConnectionState.Connected:
+			case HubConnectionState.Disconnecting:
 				return ConnectionState.Connected
-			case SignalR.HubConnectionState.Connecting:
-			case SignalR.HubConnectionState.Reconnecting:
+			case HubConnectionState.Connecting:
+			case HubConnectionState.Reconnecting:
 				return ConnectionState.Connecting
-			case SignalR.HubConnectionState.Disconnected:
+			case HubConnectionState.Disconnected:
 			default:
 				return ConnectionState.Disconnected
 		}
@@ -128,14 +149,14 @@ class ModuleInstance extends InstanceBase {
 
 		await this.stopConnection()
 
-		this.connection = new SignalR.HubConnectionBuilder()
+		this.connection = new HubConnectionBuilder()
 			.withUrl(`${Settings.BaseUrl}/keypresshub?isAccount=${codeEncoded}`, {
 				headers: {
 					'X-ConnectionCode': apiKeyEncoded,
 				},
 			})
 			.withAutomaticReconnect()
-			.configureLogging(SignalR.LogLevel.Information)
+			.configureLogging(LogLevel.Information)
 			.build()
 
 		this.connection.onreconnecting((error) => {

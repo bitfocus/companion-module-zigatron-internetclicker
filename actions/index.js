@@ -1,17 +1,17 @@
-const Next = require('./next')
-const PauseTimer = require('./pauseTimer')
-const Previous = require('./previous')
-const SendMessage = require('./sendMessage')
-const StartTimer = require('./startTimer')
-const StopTimer = require('./stopTimer')
-const ChangeTimer = require('./changeTimer')
-const TogglePresenterAccess = require('./togglePresenterAccess')
-const ToggleIndividualPresenterAccess = require('./toggleIndividualPresenterAccess')
-const PromptForNames = require('./promptForNames')
-const Connect = require('./connect')
-const Disconnect = require('./disconnect')
+import Next from './next.js'
+import PauseTimer from './pauseTimer.js'
+import Previous from './previous.js'
+import SendMessage from './sendMessage.js'
+import StartTimer from './startTimer.js'
+import StopTimer from './stopTimer.js'
+import ChangeTimer from './changeTimer.js'
+import TogglePresenterAccess from './togglePresenterAccess.js'
+import ToggleIndividualPresenterAccess from './toggleIndividualPresenterAccess.js'
+import PromptForNames from './promptForNames.js'
+import Connect from './connect.js'
+import Disconnect from './disconnect.js'
 
-module.exports = function (self) {
+export default function (self) {
 	self.setActionDefinitions({
 		next: Next(self),
 		previous: Previous(self),

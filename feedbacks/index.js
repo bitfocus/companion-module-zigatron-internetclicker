@@ -1,6 +1,6 @@
-const { combineRgb } = require('@companion-module/base')
-const Settings = require('../settings')
-const { ConnectionState } = require('../enums')
+import { combineRgb } from '@companion-module/base'
+import Settings from '../settings.js'
+import { ConnectionState } from '../enums.js'
 
 const buildPresenterOptions = () =>
 	Array.from({ length: Settings.NumberOfPresenters }, (_, i) => ({
@@ -8,7 +8,7 @@ const buildPresenterOptions = () =>
 		label: i + 1,
 	}))
 
-module.exports = async function (self) {
+export default async function (self) {
 	self.setFeedbackDefinitions({
 		control_presenter_access: {
 			type: 'boolean', // Feedbacks can either a simple boolean, or can be an 'advanced' style change (until recently, all feedbacks were 'advanced')
