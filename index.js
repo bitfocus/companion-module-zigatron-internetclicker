@@ -16,19 +16,22 @@ import EventSource from 'eventsource'
 import ToughCookie from 'tough-cookie'
 import FetchCookie from 'fetch-cookie'
 
-const originalRequire = require;
+if (process.env.NODE_ENV === 'production') {
+	const originalRequire = require;
 
-// Override require so signalr can load it's dependencies
-const signalrRequireWrapper = (moduleName) => {
-    if (moduleName === 'ws') return WebSocket
-    if (moduleName === 'eventsource') return EventSource
-	if (moduleName === 'tough-cookie') return ToughCookie
-	if (moduleName === 'fetch-cookie') return FetchCookie
-    // Fall back to original require for other modules
-    return originalRequire?.(moduleName);
-};
+	// SignalR has a dependency loading hack to workaround dynamic webpack builds so we need to 
+	// override require so it can load these dependencies correctly
+	const signalrRequireWrapper = (moduleName) => {
+		if (moduleName === 'ws') return WebSocket
+		if (moduleName === 'eventsource') return EventSource
+		if (moduleName === 'tough-cookie') return ToughCookie
+		if (moduleName === 'fetch-cookie') return FetchCookie
+		// Fall back to original require for other modules
+		return originalRequire?.(moduleName);
+	};
 
-require = signalrRequireWrapper;
+	require = signalrRequireWrapper;
+}
 
 
 class ModuleInstance extends InstanceBase {
@@ -96,7 +99,6 @@ class ModuleInstance extends InstanceBase {
 		Variables.Values[Variables.Keys.ConnectionState] = this.getHubConnectionState()
 		// update feedback
 		this.checkFeedbacks()
-		// make sure this method is called in correct places
 		this.setVariableValues(Variables.Values)
 	}
 
