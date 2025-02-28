@@ -1,11 +1,14 @@
 import { existsSync, readFileSync } from 'fs'
-import { join } from 'path'
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
 
 // a naive .env file for overriding settings locally during development or testing
 function loadDevEnv() {
 	try {
 		// Look for .env file in the module directory
-		const envPath = join(__dirname, '.env')
+		const directory = dirname(fileURLToPath(import.meta.url))
+		const envPath = join(directory, '.env')
+
 		if (existsSync(envPath)) {
 			const envConfig = readFileSync(envPath, 'utf8')
 				.split('\n')
