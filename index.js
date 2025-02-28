@@ -16,6 +16,7 @@ import EventSource from 'eventsource'
 import ToughCookie from 'tough-cookie'
 import FetchCookie from 'fetch-cookie'
 
+// development builds do not have access to require and it works fine without this hack anyway
 if (process.env.NODE_ENV === 'production') {
 	const originalRequire = require;
 
