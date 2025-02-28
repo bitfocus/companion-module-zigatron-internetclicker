@@ -1,10 +1,11 @@
+import { combineRgb } from '@companion-module/base'
 import Settings from './settings.js'
 
 function generatePresenterToggleButtons() {
 	const presets = {}
 	for (let index = 1; index <= Settings.NumberOfPresenters; index++) {
 		const zero_index = index - 1
-		presets[`toggle_presenter_${index}`] = {
+		const preset = {
 			category: 'Presenter Controls',
 			name: `Toggle Presenter ${index}`,
 			type: 'button',
@@ -13,6 +14,8 @@ function generatePresenterToggleButtons() {
 			style: {
 				text: `$(zigatron-internetclicker:presenter_${index}_name)`, // Use a variable for the text
 				size: 'auto',
+				color: combineRgb(255, 255, 255),
+				bgcolor: combineRgb(0, 0, 0),
 			},
 
 			// Add your feedbacks
@@ -46,6 +49,14 @@ function generatePresenterToggleButtons() {
 				},
 			],
 		}
+
+		preset.previewStyle = { 
+			...preset.style,
+			text: preset.name,
+			size: '14'
+		}
+
+		presets[`toggle_presenter_${index}`] = preset
 	}
 
 	return presets
